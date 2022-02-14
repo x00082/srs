@@ -269,6 +269,46 @@ void SrsHttpHooks::on_stop(string url, SrsRequest* req)
     return;
 }
 
+srs_error_t SrsHttpHooks::on_metadata(string url, SrsRequest* req, void* metadata)
+{
+    srs_error_t err = srs_success;
+
+    SrsContextId cid = _srs_context->get_id();
+
+    SrsStatistic* stat = SrsStatistic::instance();
+
+    SrsJsonAny* jsonObj = (SrsJsonAny*)metadata;
+
+    SrsJsonObject* obj = SrsJsonAny::object();
+    SrsAutoFree(SrsJsonObject, obj);
+
+    obj->set("server_id", SrsJsonAny::str(stat->server_id().c_str()));
+    obj->set("action", SrsJsonAny::str("on_metadata"));
+    obj->set("client_id", SrsJsonAny::str(cid.c_str()));
+    obj->set("ip", SrsJsonAny::str(req->ip.c_str()));
+    obj->set("vhost", SrsJsonAny::str(req->vhost.c_str()));
+    obj->set("app", SrsJsonAny::str(req->app.c_str()));
+    obj->set("stream", SrsJsonAny::str(req->stream.c_str()));
+    obj->set("param", SrsJsonAny::str(req->param.c_str()));
+    obj->set("pageUrl", SrsJsonAny::str(req->pageUrl.c_str()));
+    obj->set("metadata", jsonObj);
+
+    std::string data = obj->dumps();
+    std::string res;
+    int status_code;
+
+    SrsHttpClient http;
+    if ((err = do_post(&http, url, data, status_code, res)) != srs_success) {
+        return srs_error_wrap(err, "http: on_metadata failed, client_id=%s, url=%s, request=%s, response=%s, status=%d",
+                              cid.c_str(), url.c_str(), data.c_str(), res.c_str(), status_code);
+    }
+
+    srs_trace("http: on_metadata ok, client_id=%s, url=%s, request=%s, response=%s",
+              cid.c_str(), url.c_str(), data.c_str(), res.c_str());
+
+    return err;
+}
+
 srs_error_t SrsHttpHooks::on_dvr(SrsContextId c, string url, SrsRequest* req, string file)
 {
     srs_error_t err = srs_success;

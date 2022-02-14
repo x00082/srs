@@ -1085,6 +1085,11 @@ srs_error_t SrsRtmpConn::process_publish_message(SrsLiveSource* source, SrsCommo
         
         if (dynamic_cast<SrsOnMetaDataPacket*>(pkt)) {
             SrsOnMetaDataPacket* metadata = dynamic_cast<SrsOnMetaDataPacket*>(pkt);
+
+            if ((err = http_hooks_on_metadata(metadata)) != srs_success) {
+                return srs_error_wrap(err, "rtmp: callback on metadata");
+            }
+
             if ((err = source->on_meta_data(msg, metadata)) != srs_success) {
                 return srs_error_wrap(err, "rtmp: consume metadata");
             }
@@ -1435,6 +1440,45 @@ void SrsRtmpConn::http_hooks_on_stop()
     }
     
     return;
+}
+
+srs_error_t SrsRtmpConn::http_hooks_on_metadata(SrsPacket* pkt){
+
+    srs_error_t err = srs_success;
+
+    SrsRequest* req = info->req;
+
+    if (!_srs_config->get_vhost_http_hooks_enabled(req->vhost)) {
+        return err;
+    }
+
+    // the http hooks will cause context switch,
+    // so we must copy all hooks for the on_connect may freed.
+    // @see https://github.com/ossrs/srs/issues/475
+    vector<string> hooks;
+
+    if (true) {
+        SrsConfDirective* conf = _srs_config->get_vhost_on_metadata(req->vhost);
+
+        if (!conf) {
+            return err;
+        }
+
+        hooks = conf->args;
+    }
+
+    SrsOnMetaDataPacket* metadata = dynamic_cast<SrsOnMetaDataPacket*>(pkt);
+
+    SrsJsonAny* jobj = metadata->metadata->to_json();
+
+    for (int i = 0; i < (int)hooks.size(); i++) {
+        std::string url = hooks.at(i);
+        if ((err = SrsHttpHooks::on_metadata(url, req, jobj)) != srs_success) {
+            return srs_error_wrap(err, "rtmp on_metadata %s", url.c_str());
+        }
+    }
+
+    return err;
 }
 
 srs_error_t SrsRtmpConn::start()

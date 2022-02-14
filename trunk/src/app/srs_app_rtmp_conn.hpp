@@ -167,6 +167,8 @@ private:
     virtual void http_hooks_on_unpublish();
     virtual srs_error_t http_hooks_on_play();
     virtual void http_hooks_on_stop();
+
+    virtual srs_error_t http_hooks_on_metadata(SrsPacket* pkt);
 // Extract APIs from SrsTcpConnection.
 // Interface ISrsStartable
 public:

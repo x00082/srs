@@ -667,6 +667,9 @@ public:
     // Get the on_stop callbacks of vhost.
     // @return the on_stop callback directive, the args is the url to callback.
     virtual SrsConfDirective* get_vhost_on_stop(std::string vhost);
+    // Get the on_stop callbacks of vhost.
+    // @return the get_vhost_on_metadata callback directive, the args is the url to callback.
+    virtual SrsConfDirective* get_vhost_on_metadata(std::string vhost);
     // Get the on_dvr callbacks of vhost.
     // @return the on_dvr callback directive, the args is the url to callback.
     virtual SrsConfDirective* get_vhost_on_dvr(std::string vhost);
