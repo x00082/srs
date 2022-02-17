@@ -25,6 +25,7 @@ extern srs_error_t srs_avc_nalu_read_uev(SrsBitBuffer* stream, int32_t& v);
 extern srs_error_t srs_avc_nalu_read_bit(SrsBitBuffer* stream, int8_t& v);
 
 // Get current system time in srs_utime_t, use cache to avoid performance problem
+extern srs_utime_t srs_get_system_time_ms();
 extern srs_utime_t srs_get_system_time();
 extern srs_utime_t srs_get_system_startup_time();
 // A daemon st-thread updates it.

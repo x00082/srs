@@ -18,6 +18,8 @@
 #include <sys/time.h>
 #include <math.h>
 #include <map>
+#include <openssl/md5.h>
+
 #ifdef SRS_OSX
 #include <sys/sysctl.h>
 #endif
@@ -1434,3 +1436,40 @@ string srs_getenv(string key)
     return "";
 }
 
+static std::string hostName;
+
+string srs_get_host_name()
+{
+    if (hostName.empty()) {
+        char name[256];
+        ::gethostname(name, sizeof(name));
+        hostName = name;
+    }
+
+    return hostName;
+}
+
+string srs_create_session_id()
+{
+    static int64_t num = 0;
+    std::stringstream ss;
+
+    srand(time(NULL));
+    ss << srs_get_host_name() << ::time(NULL) << ::getpid() << rand() << num++;
+
+    MD5_CTX M;
+    MD5_Init(&M);
+    MD5_Update(&M, (unsigned char *) ss.str().c_str(), ss.str().length());
+
+    unsigned char sess_id[64] = {0};
+    MD5_Final(sess_id, &M);
+
+    char hex_sess_id[64] = {0};
+    char* p = hex_sess_id;
+    for (int n = 0; n < 16; n++) {
+        snprintf(p, 3, "%02x", sess_id[n]);
+        p += 2;
+    }
+
+    return hex_sess_id;
+}

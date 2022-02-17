@@ -96,6 +96,11 @@ srs_utime_t srs_get_system_time()
     return _srs_system_time_us_cache;
 }
 
+srs_utime_t srs_get_system_time_ms()
+{
+    return srs_get_system_time()/1000;
+}
+
 srs_utime_t srs_get_system_startup_time()
 {
     if (_srs_system_time_startup_time <= 0) {

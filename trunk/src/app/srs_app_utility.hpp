@@ -687,5 +687,9 @@ extern std::string srs_string_dumps_hex(const char* str, int length, int limit, 
 //      srs_getenv("EIP") === srs_getenv("$EIP")
 extern std::string srs_getenv(std::string key);
 
+
+//add for create session id.
+extern std::string srs_create_session_id();
+
 #endif
 
